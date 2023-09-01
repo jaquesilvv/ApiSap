@@ -12,7 +12,7 @@ REPORT z_apitest_j.
 TRY.
 
 "API URL.
-DATA(lv_url) = |******URL******|.
+DATA(lv_url) = |XXXXXXXXXXXXXXXX|.
 DATA: o_client TYPE REF TO if_http_client.
 
 
@@ -41,9 +41,9 @@ o_client->request->set_method( if_http_request=>co_request_method_get ).
 
 "PREPARE REQUEST.
 o_client->request->set_method( if_http_request=>co_request_method_post ).
-o_client->request->set_form_field( name = 'Key' value = '***************' ).
-o_client->request->set_form_field( name = 'UserClient' value = '*************' ).
-o_client->request->set_form_field( name = 'PassClient' value = '**********' ).
+o_client->request->set_form_field( name = 'Key' value = 'XXXXXXXXXXX' ).
+o_client->request->set_form_field( name = 'UserClient' value = 'XXXXXXXXXXX' ).
+o_client->request->set_form_field( name = 'PassClient' value = 'XXXXXXXXXXX' ).
 
 "SEND REQUEST.
 o_client->send(
