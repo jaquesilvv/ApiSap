@@ -118,7 +118,7 @@ TYPES: BEGIN OF lty_data,
        END OF lty_json_data.
 
   DATA: it_data          TYPE STANDARD TABLE OF lty_data,
-        it_data_clkt001  TYPE STANDARD TABLE OF /COMLINK/CLKT001,
+        it_data_clkt001  TYPE STANDARD TABLE OF XXXXXXXX
         it_json_data     TYPE STANDARD TABLE OF lty_json_data,
         it_json_line     TYPE lty_json_data.
 
@@ -132,12 +132,10 @@ TYPES: BEGIN OF lty_data,
           lv1_string   TYPE string.
 
 *Pass the URL to get Data
-  lv_string = |https://delta-dev.comlink.com.br/integracao/apisap/integracao/retorno/RetornoCotacao/8153|.
+  lv_string = |***************** URL DO ENDPOINT|.
 
   SELECT *
-        FROM /COMLINK/CLKT001
-        INTO TABLE it_data_clkt001
-        WHERE CCOTCOL = 10.
+***TABELA INTERNA
 
 *  lv1_string = /ui2/cl_json=>serialize( data = it_data compress = abap_false pretty_name = /ui2/cl_json=>pretty_mode-camel_case ).
 
