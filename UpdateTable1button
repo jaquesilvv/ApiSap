@@ -1,0 +1,102 @@
+REPORT zupdatetable.
+TABLES ztt_apidata.
+TABLES sscrfields.
+
+DATA: lv_key    TYPE string,
+      lv_usercl TYPE string,
+      lv_passcl TYPE string,
+      lv_url    TYPE string.
+
+DATA: lt_apidata  TYPE TABLE OF ztt_apidata,
+      wa_apidata  LIKE LINE OF lt_apidata,
+      e_return    TYPE string.
+
+DATA: lv_has_data TYPE abap_bool.
+
+PARAMETERS: p_key    LIKE sy-ucomm OBLIGATORY LOWER CASE DEFAULT '0DA4D7AA603B1600EC7F7312B3F36EDC',
+            p_usercl TYPE string OBLIGATORY LOWER CASE DEFAULT 'irqotzkmxg',
+            p_passcl TYPE string OBLIGATORY LOWER CASE DEFAULT 'irqozmF8687',
+            p_url    TYPE string OBLIGATORY LOWER CASE DEFAULT 'https://corporativo.comlink.com.br/integracao/login/autorizar?grant_type=password&peschave=0DA4D7AA603B1600EC7F7312B3F36EDC&userclient=irqotzkmxg&passclient=irqozmF8687'.
+
+lv_key    = p_key.
+lv_usercl = p_usercl.
+lv_passcl = p_passcl.
+lv_url    = p_url.
+
+*DATA: p_but1 LIKE sy-ucomm,
+*      p_but2 LIKE sy-ucomm.
+
+
+*  SELECTION-SCREEN BEGIN OF BLOCK b1 NO INTERVALS. "WITH FRAME TITLE TEXT-200.
+*  SELECTION-SCREEN PUSHBUTTON /1(25) p_but1 USER-COMMAND but1.
+*  SELECTION-SCREEN PUSHBUTTON /1(25) p_but2 USER-COMMAND but2.
+*  SELECTION-SCREEN END OF BLOCK b1.
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-200.
+
+PARAMETERS: p_but1 RADIOBUTTON GROUP gr1.
+
+SELECTION-SCREEN SKIP 2.
+SELECTION-SCREEN ULINE.
+*SELECTION-SCREEN DYNAMIC SELECTIONS FOR
+
+PARAMETERS: p_but2 RADIOBUTTON GROUP gr1.
+
+
+PARAMETERS: p_key    TYPE string, " OBLIGATORY LOWER CASE DEFAULT '0DA4D7AA603B1600EC7F7312B3F36EDC',
+            p_usercl TYPE string, " OBLIGATORY LOWER CASE DEFAULT 'irqotzkmxg',
+            p_passcl TYPE string, " OBLIGATORY LOWER CASE DEFAULT 'irqozmF8687',
+            p_url    TYPE string. " OBLIGATORY LOWER CASE DEFAULT 'https://corporativo.comlink.com.br/integracao/login/autorizar?grant_type=password&peschave=0DA4D7AA603B1600EC7F7312B3F36EDC&userclient=irqotzkmxg&passclient=irqozmF8687'.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+
+INITIALIZATION.
+  p_but1 = icon_display     && 'Consultar Tabela'(001).
+  p_but2 = icon_system_save && 'Gravar na Tabela'(002).
+
+
+AT SELECTION-SCREEN ON BLOCK b1.
+
+START-OF-SELECTION.
+
+  CASE sy-ucomm.
+
+    WHEN p_but1.
+      PERFORM consulta_tabela.
+
+    WHEN p_but2.
+      PERFORM importa_valores.
+
+  ENDCASE.
+
+"END-OF-SELECTION.
+
+FORM consulta_tabela.
+
+  CALL FUNCTION 'Z_CONSULT_TABLE'
+    IMPORTING
+      e_return    = e_return
+    TABLES
+      ztt_apidata = lt_apidata.
+
+ENDFORM.
+
+
+
+FORM importa_valores.
+
+  CALL FUNCTION 'Z_IMPORT_VALUES'
+    EXPORTING
+      e_return    = e_return
+      p_key       = lv_key
+      p_usercl    = lv_usercl
+      p_passcl    = lv_passcl
+      p_url       = lv_url
+    TABLES
+      ztt_apidata = lt_apidata.
+
+  WRITE: ztt_apidata.
+
+ENDFORM.
