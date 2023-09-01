@@ -1,0 +1,197 @@
+**Consome API aleatória da internet e retorna 200 OK.
+
+
+
+
+
+**&---------------------------------------------------------------------*
+**&
+**& TEST PROGRAM FOR INTEGRATION API.
+**&
+**&---------------------------------------------------------------------*
+REPORT z_apitest_j.
+
+TRY.
+
+"API URL.
+DATA(lv_url) = |https://airport-info.p.rapidapi.com/airport?iata=lax|.
+DATA: o_client TYPE REF TO if_http_client.
+
+
+"CREATE HTTP OBJETC.
+cl_http_client=>create_by_url( EXPORTING
+                                  url = lv_url
+                               IMPORTING
+                                  client = o_client
+                               EXCEPTIONS
+                                 argument_not_found = 1
+                                 plugin_not_active  = 2
+                                 internal_error     = 3
+                                 others             = 4 ).
+
+
+IF sy-subrc <> 0.
+  o_client->close( ).
+ENDIF.
+
+IF o_client IS BOUND.
+
+
+"SET HTTP METHOD.
+o_client->request->set_method( if_http_request=>co_request_method_get ).
+
+*
+"SET HEADER FIELDS.
+o_client->request->set_header_field( name  = 'X-RapidAPI-Host'
+                                     value = 'airport-info.p.rapidapi.com' ).
+
+o_client->request->set_header_field( name  = 'X-RapidAPI-Key'
+                                     value = '125541a78emsh5132b1b67e6a632p160bb7jsnba88810ae865' ).
+
+
+"SET TIMOUT.
+o_client->send( timeout = if_http_client=>co_timeout_default ).
+
+
+"READ RESPONSE, HTTP_STATUS, PAYLOAD.
+o_client->receive( ).
+DATA: lv_http_status TYPE i,
+      lv_status_text TYPE string.
+
+o_client->response->get_status( IMPORTING
+                                  code   = lv_http_status
+                                  reason = lv_status_text ).
+
+WRITE: / 'HTTP_STATUS_CODE:', lv_http_status.
+WRITE: / 'STATUS_TEXT:', lv_status_text.
+
+IF lv_http_status = 200.
+  DATA(lv_result) = o_client->response->get_cdata( ).
+  WRITE: / 'Response:'.
+  WRITE: / lv_result.
+ENDIF.
+
+"CLOSE HTTP CONNECTION.
+o_client->close( ).
+ENDIF.
+
+CATCH cx_root INTO DATA(e_txt).
+  WRITE: / e_txt->get_text( ).
+ENDTRY.
+
+
+
+
+
+
+
+
+*&---------------------------------------------------------------------*
+*& Report Z_APITEST_T
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+
+
+REPORT Z_APITEST_T.
+
+SELECTION-SCREEN: BEGIN OF BLOCK b1 WITH FRAME TITLE text-s01.
+PARAMETERS: p_cotnum TYPE belnr_d DEFAULT '8153'.
+SELECTION-SCREEN: END OF BLOCK b1.
+
+START-OF-SELECTION.
+
+TYPES: BEGIN OF lty_data,
+         id        TYPE    s_carr_id,
+         carrid    TYPE    s_carr_id,
+         connid    TYPE    string,
+         fldate    TYPE    s_date,
+         planetype TYPE    s_planetye,
+         SEATSMAX  TYPE    int4,
+         SEATSOCC  TYPE    int4,
+       END OF lty_data,
+       BEGIN OF lty_json_data,
+         token_type     TYPE    string,
+         expires_in     TYPE    i,
+         ext_expires_in TYPE    i,
+         access_token   TYPE    string,
+       END OF lty_json_data.
+
+  DATA: it_data          TYPE STANDARD TABLE OF lty_data,
+        it_data_clkt001  TYPE STANDARD TABLE OF /COMLINK/CLKT001,
+        it_json_data     TYPE STANDARD TABLE OF lty_json_data,
+        it_json_line     TYPE lty_json_data.
+
+*HTTP Client Abstraction
+    data  lo_client TYPE ref TO if_http_client.
+
+*Data variables for storing response in xstring and string
+  DATA  : lv_xstring   TYPE xstring,
+          lv_string    TYPE string,
+          lv_node_name TYPE string,
+          lv1_string   TYPE string.
+
+*Pass the URL to get Data
+  lv_string = |https://delta-dev.comlink.com.br/integracao/apisap/integracao/retorno/RetornoCotacao/8153|.
+
+  SELECT *
+        FROM /COMLINK/CLKT001
+        INTO TABLE it_data_clkt001
+        WHERE CCOTCOL = 10.
+
+*  lv1_string = /ui2/cl_json=>serialize( data = it_data compress = abap_false pretty_name = /ui2/cl_json=>pretty_mode-camel_case ).
+
+*Creation of New IF_HTTP_Client Object
+  cl_http_client=>create_by_url(
+  EXPORTING
+    url                = lv_string
+  IMPORTING
+    client             = lo_client
+  EXCEPTIONS
+    argument_not_found = 1
+    plugin_not_active  = 2
+    internal_error     = 3
+    ).
+
+  IF sy-subrc IS NOT INITIAL.
+* Handle errors
+  ENDIF.
+
+  lo_client->propertytype_logon_popup = lo_client->co_disabled.
+  lo_client->request->set_method( 'GET' ).
+
+
+*  CALL METHOD lo_client->request->set_header_field
+*    EXPORTING
+*      name  = 'XXXXXXXX'
+*      value = ' XXXXXXXX '.
+
+
+  CALL METHOD lo_client->request->set_header_field
+    EXPORTING
+      name  = 'Accept'
+      value = 'application/json'.
+
+*Structure of HTTP Connection and Dispatch of Data
+  lo_client->send( ).
+  IF sy-subrc IS NOT INITIAL.
+* Handle errors
+  ENDIF.
+
+*Receipt of HTTP Response
+  lo_client->receive( ).
+  IF sy-subrc IS NOT INITIAL.
+* Handle errors
+  ENDIF.
+
+END-OF-SELECTION.
+
+*Return the HTTP body of this entity as binary data
+  lv_xstring = lo_client->response->get_data( ).
+
+**Displays XML File
+  CALL METHOD cl_abap_browser=>show_xml
+    EXPORTING
+      xml_xstring = lv_xstring
+      size        = cl_abap_browser=>large.
+
