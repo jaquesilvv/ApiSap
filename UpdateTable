@@ -1,0 +1,46 @@
+Update na Tabela ZTT-APIDATA
+
+*&---------------------------------------------------------------------*
+*&
+*& Report ZPROGTESTE
+*&
+*&---------------------------------------------------------------------*
+REPORT ZPROGTESTE.
+TABLES: ZTT_APIDATA.
+
+
+TYPES: BEGIN OF ztt_apidata,
+         p_key(50)        TYPE C,
+         p_userclient(50) TYPE C,
+         p_passclient(50) TYPE C,
+         p_url(300)       TYPE C,
+       END OF ztt_apidata.
+
+DATA: wa         TYPE ztt_apidata,
+      in         TYPE TABLE OF ztt_apidata.
+
+wa-p_key        = 'XXXXXXXXXXX'.
+wa-p_userclient = 'XXXXXXXXXXX'.
+wa-p_passclient = 'XXXXXXXXXXX'.
+wa-p_url        = 'XXXXXXXXXXX'.
+INSERT wa INTO TABLE in.
+
+"APPEND wa TO ztt_apidata.
+
+MOVE: wa-p_key        TO ztt_apidata-zkey,
+      wa-p_userclient TO ztt_apidata-zuserclient,
+      wa-p_passclient TO ztt_apidata-zpassclient,
+      wa-p_url        TO ztt_apidata-zurl.
+
+INSERT ztt_apidata.
+
+
+LOOP AT in INTO wa.
+
+  IF sy-subrc = 0.
+    COMMIT WORK.
+  ELSE.
+    UPDATE ztt_apidata.
+  ENDIF.
+
+ENDLOOP.
