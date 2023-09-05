@@ -1,0 +1,59 @@
+Função Z_IMPORT_VALUES funcionando corretamente.
+
+
+  FUNCTION z_import_values.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(P_KEY) TYPE  C
+*"     REFERENCE(P_URL) TYPE  C
+*"     REFERENCE(P_PASSCL) TYPE  C
+*"     REFERENCE(P_USERCL) TYPE  C
+*"  TABLES
+*"      ZZTT_APIDATA STRUCTURE  ZTT_APIDATA
+*"----------------------------------------------------------------------
+    TABLES ztt_apidata.
+
+    DATA: lt_apidata TYPE TABLE OF ztt_apidata,
+          ls_apidata LIKE ztt_apidata.
+
+
+    SELECT * FROM ztt_apidata INTO TABLE lt_apidata.
+
+    IF lt_apidata[] IS NOT INITIAL.
+
+
+      zztt_apidata-zkey        = p_key.
+      zztt_apidata-zurl        = p_url.
+      zztt_apidata-zuserclient = p_usercl.
+      zztt_apidata-zpassclient = p_passcl.
+
+      COLLECT zztt_apidata into lt_apidata.
+
+      UPDATE ztt_apidata
+         SET zkey        = @zztt_apidata-zkey,
+             zurl        = @zztt_apidata-zurl,
+             zpassclient = @zztt_apidata-zpassclient,
+             zuserclient = @zztt_apidata-zuserclient.
+
+
+
+      COMMIT WORK.
+
+      WRITE: 'Registros atualizados com sucesso!'.
+
+    ELSE.
+
+      ls_apidata-zkey        = p_key.
+      ls_apidata-zurl        = p_url.
+      ls_apidata-zuserclient = p_usercl.
+      ls_apidata-zpassclient = p_passcl.
+
+      INSERT INTO ztt_apidata VALUES ls_apidata.
+
+      WRITE: 'Primeiro registro inserido com sucesso!'.
+
+    ENDIF.
+
+
+  ENDFUNCTION.
