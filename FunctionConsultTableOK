@@ -1,0 +1,40 @@
+Função Z_CONSULT_TABLE funcionando corretamente.
+
+
+
+FUNCTION z_consult_table.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  EXPORTING
+*"     REFERENCE(E_RETURN) TYPE  STRING
+*"  TABLES
+*"      ZTT_APIDATA STRUCTURE  ZTT_APIDATA
+*"----------------------------------------------------------------------
+
+  DATA: lt_apidata TYPE TABLE OF ztt_apidata.
+
+  SELECT * FROM ztt_apidata INTO TABLE lt_apidata.
+
+
+  IF lt_apidata IS NOT INITIAL.
+
+
+    LOOP AT lt_apidata INTO DATA(ls_apidata).
+
+
+      WRITE / 'Dados armazenados na tabela: '.
+      SKIP.
+      WRITE: /'KEY:',        ls_apidata-zkey,
+             /'USERCLIENT:', ls_apidata-zuserclient,
+             /'PASSCLIENT:', ls_apidata-zpassclient,
+             /'URL:',        ls_apidata-zurl.
+
+    ENDLOOP.
+
+  ELSE.
+    WRITE 'A tabela não possui registros.'.
+
+  ENDIF.
+
+
+ENDFUNCTION.
