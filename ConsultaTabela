@@ -1,0 +1,39 @@
+Função que consulta a tabela e retorna seu conteúdo.
+
+FUNCTION z_consult_table.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  EXPORTING
+*"     REFERENCE(E_RETURN) TYPE  STRING
+*"  TABLES
+*"      ZTT_APIDATA STRUCTURE  ZTT_APIDATA
+*"----------------------------------------------------------------------
+
+  DATA: lt_apidata TYPE TABLE OF ztt_apidata.
+
+  SELECT * FROM ztt_apidata INTO TABLE lt_apidata.
+
+
+  IF lt_apidata IS NOT INITIAL.
+
+
+    LOOP AT lt_apidata INTO DATA(ls_apidata).
+
+
+      WRITE / 'Dados armazenados na tabela: '.
+      SKIP.
+      WRITE: /'Key:',        ls_apidata-zkey,
+             /'UserClient:', ls_apidata-zuserclient,
+             /'PassClient',  ls_apidata-zpassclient,
+             /'Url:',        ls_apidata-zurl.
+     SKIP.
+
+   ENDLOOP.
+
+  ELSE.
+    e_return = 'A tabela não possui dados'.
+
+  ENDIF.
+
+
+ENDFUNCTION.
