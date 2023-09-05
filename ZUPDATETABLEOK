@@ -1,0 +1,104 @@
+Update table com os dois botões funcionando e chamando as funções.
+
+
+
+REPORT zupdatetable.
+TABLES ztt_apidata.
+
+DATA: lv_key     TYPE ztt_apidata-zkey,
+      lv_usercl  TYPE ztt_apidata-zuserclient,
+      lv_passcl  TYPE ztt_apidata-zpassclient,
+      lv_url     TYPE ztt_apidata-zurl.
+
+DATA: lt_apidata TYPE STANDARD TABLE OF ztt_apidata,
+      wa_apidata TYPE ztt_apidata.
+
+DATA: e_return   TYPE string.
+
+
+SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-200.
+
+
+
+PARAMETERS: p_but1 RADIOBUTTON GROUP gr1.
+
+SELECTION-SCREEN SKIP 2.
+SELECTION-SCREEN ULINE.
+
+
+PARAMETERS: p_but2 RADIOBUTTON GROUP gr1.
+
+
+PARAMETERS: p_key(200)    TYPE c, " OBLIGATORY LOWER CASE," DEFAULT '0DA4D7AA603B1600EC7F7312B3F36EDC',
+            p_usercl(200) TYPE c, " OBLIGATORY LOWER CASE," DEFAULT 'irqotzkmxg',
+            p_passcl(200) TYPE c, " OBLIGATORY LOWER CASE," DEFAULT 'irqozmF8687',
+            p_url(200)    TYPE c. " OBLIGATORY LOWER CASE." DEFAULT 'https://corporativo.comlink.com.br/integracao/login/autorizar?grant_type=password&peschave=0DA4D7AA603B1600EC7F7312B3F36EDC&userclient=irqotzkmxg&passclient=irqozmF8687'.
+
+SELECTION-SCREEN END OF BLOCK b1.
+
+
+AT SELECTION-SCREEN ON BLOCK b1.
+
+START-OF-SELECTION.
+
+  LOOP AT SCREEN.
+
+    IF p_but1 = 'X'.
+      screen-active = 1.
+      MODIFY SCREEN.
+      PERFORM consulta_tabela.
+
+    ELSE." p_but2 = 'X'.
+      screen-active = 1.
+      MODIFY SCREEN.
+      PERFORM importa_valores.
+
+    ENDIF.
+
+  ENDLOOP.
+
+END-OF-SELECTION.
+
+
+
+FORM consulta_tabela.
+
+
+  CALL FUNCTION 'Z_CONSULT_TABLE'
+    IMPORTING
+      e_return    = e_return
+    TABLES
+      ztt_apidata = lt_apidata.
+
+
+ENDFORM.
+
+
+
+FORM importa_valores.
+
+  lv_key    = p_key.
+  lv_url    = p_url.
+  lv_usercl = p_usercl.
+  lv_passcl = p_passcl.
+
+  wa_apidata-zkey = p_key.
+  wa_apidata-zurl = p_url.
+  wa_apidata-zuserclient = p_usercl.
+  wa_apidata-zpassclient = p_passcl.
+
+  COLLECT wa_apidata INTO lt_apidata.
+
+
+  CALL FUNCTION 'Z_IMPORT_VALUES'
+    EXPORTING
+      p_key        = lv_key
+      p_url        = lv_url
+      p_passcl     = lv_passcl
+      p_usercl     = lv_usercl
+    TABLES
+      zztt_apidata = lt_apidata.
+
+  COMMIT WORK.
+
+ENDFORM.
