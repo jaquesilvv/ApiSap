@@ -1,0 +1,139 @@
+*Programa zupdatetable funcionando corretamente, com botões com ícones, abas e click de F8.
+
+REPORT zupdatetable NO STANDARD PAGE HEADING.
+TABLES: ztt_apidata,
+        sscrfields.
+
+DATA: lv_key    TYPE ztt_apidata-zkey,
+      lv_usercl TYPE ztt_apidata-zuserclient,
+      lv_passcl TYPE ztt_apidata-zpassclient,
+      lv_url    TYPE ztt_apidata-zurl.
+
+DATA: lt_apidata TYPE STANDARD TABLE OF ztt_apidata,
+      wa_apidata TYPE ztt_apidata.
+
+DATA: e_return   TYPE string.
+
+DATA: clicked_button_tab1 TYPE abap_bool,
+      clicked_button_tab2 TYPE abap_bool.
+
+
+"CRIA A TELA 1.
+SELECTION-SCREEN BEGIN OF SCREEN 100 AS SUBSCREEN.
+SELECTION-SCREEN PUSHBUTTON /1(30) p_but1 USER-COMMAND but1.
+SELECTION-SCREEN END OF SCREEN 100.
+
+
+"CRIA A TELA 2 E OS PARAMETERS DE ENTRADA.
+SELECTION-SCREEN BEGIN OF SCREEN 200 AS SUBSCREEN.
+PARAMETERS: p_key(200)    TYPE c, " OBLIGATORY LOWER CASE
+            p_usercl(200) TYPE c, " OBLIGATORY LOWER CASE
+            p_passcl(200) TYPE c, " OBLIGATORY LOWER CASE
+            p_url(200)    TYPE c. " OBLIGATORY LOWER CASE
+SELECTION-SCREEN SKIP.
+SELECTION-SCREEN PUSHBUTTON /1(30) p_but2 USER-COMMAND but2.
+SELECTION-SCREEN END OF SCREEN 200.
+
+
+"CRIA DUAS ABAS.
+SELECTION-SCREEN: BEGIN OF TABBED BLOCK mytab FOR 10 LINES,
+                  TAB (50) button1 USER-COMMAND push1 DEFAULT SCREEN 100,
+                  TAB (50) button2 USER-COMMAND push2 DEFAULT SCREEN 200,
+                  END OF BLOCK mytab.
+
+
+"COLOCA NOME EM TODOS OS BOTÕES.
+INITIALIZATION.
+  p_but1  = icon_display     && 'Consultar Tabela'(001).
+  p_but2  = icon_system_save && 'Gravar na Tabela'(002).
+  button1 = 'Consultar Tabela'.
+  button2 = 'Gravar Dados na Tabela'.
+
+
+  IF sy-subrc = 0.
+
+    IF clicked_button_tab1 = abap_true.
+      p_but1 = icon_display     && 'Consultar Tabela'(001).
+      p_but2 = icon_system_save && 'Gravar na Tabela'(002).
+
+    ELSE.
+      p_but1 = icon_display     && 'Consultar Tabela'(001).
+      p_but2 = icon_system_save && 'Gravar Dados na Tabela'(002).
+
+    ENDIF.
+  ENDIF.
+
+
+AT SELECTION-SCREEN.
+
+"TRIGGER DO CLICK DE ACORDO COM CADA BOTÃO.
+  CASE sy-ucomm.
+
+    WHEN 'BUT1'.
+      clicked_button_tab1 = abap_true.
+      clicked_button_tab2 = abap_false.
+      sscrfields-ucomm    = 'ONLI'.
+
+    WHEN 'BUT2'.
+      clicked_button_tab1 = abap_false.
+      clicked_button_tab2 = abap_true.
+      sscrfields-ucomm    = 'ONLI'.
+
+  ENDCASE.
+
+
+AT SELECTION-SCREEN OUTPUT.
+START-OF-SELECTION.
+
+"QUANDO O BOTÃO = TRUE, CHAMA O PERFORM.
+  IF clicked_button_tab1 = abap_true.
+    PERFORM consulta_tabela.
+
+  ELSEIF clicked_button_tab2 = abap_true.
+    PERFORM importa_valores.
+
+  ENDIF.
+
+
+
+FORM consulta_tabela.
+
+
+  CALL FUNCTION 'Z_CONSULT_TABLE'
+    IMPORTING
+      e_return    = e_return
+    TABLES
+      ztt_apidata = lt_apidata.
+
+
+ENDFORM.
+
+
+
+FORM importa_valores.
+
+  lv_key    = p_key.
+  lv_url    = p_url.
+  lv_usercl = p_usercl.
+  lv_passcl = p_passcl.
+
+  wa_apidata-zkey = p_key.
+  wa_apidata-zurl = p_url.
+  wa_apidata-zuserclient = p_usercl.
+  wa_apidata-zpassclient = p_passcl.
+
+  COLLECT wa_apidata INTO lt_apidata.
+
+
+  CALL FUNCTION 'Z_IMPORT_VALUES'
+    EXPORTING
+      p_key        = lv_key
+      p_url        = lv_url
+      p_passcl     = lv_passcl
+      p_usercl     = lv_usercl
+    TABLES
+      zztt_apidata = lt_apidata.
+
+  COMMIT WORK.
+
+ENDFORM.
